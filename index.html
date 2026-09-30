@@ -81,15 +81,26 @@ function fail(msg,detail){
   $("debug").textContent=detail||msg;
 }
 async function post(body){
+  // Apps Script web apps are most reliable cross-origin with simple text/plain POST.
   const r=await fetch(DISPLAY_API,{
     method:"POST",
     headers:{"Content-Type":"text/plain;charset=utf-8"},
     body:JSON.stringify(body),
-    redirect:"follow"
+    redirect:"follow",
+    cache:"no-store"
   });
   const text=await r.text();
   let j;
-  try{j=JSON.parse(text)}catch(e){throw new Error("API 回傳不是 JSON："+text.slice(0,250))}
+  try{j=JSON.parse(text)}catch(e){
+    // A Google HTML page here usually means a temporary Apps Script redirect/session response.
+    // Retry register through GET so a TV never gets stuck without a pairing code.
+    if(body&&body.action==="register"){
+      const u=DISPLAY_API+"?action=register&deviceId="+encodeURIComponent(body.deviceId||"")+"&_="+Date.now();
+      const rr=await fetch(u,{cache:"no-store",redirect:"follow"});
+      const tt=await rr.text();
+      try{j=JSON.parse(tt)}catch(_){throw new Error("Display API 暫時無法連線，正在自動重試")}
+    }else throw new Error("Display API 暫時無法連線，正在自動重試");
+  }
   if(!j || j.ok!==true) throw new Error(j?.error||"API_ERROR");
   return j;
 }
@@ -157,7 +168,9 @@ async function boot(){
     }
     poll(id);
   }catch(e){
-    fail("無法取得配對碼",String(e && e.message || e));
+    status("Display API 重新連線中…","err");
+    $("debug").style.display="none";
+    setTimeout(boot,3000);
   }
 }
 boot();
