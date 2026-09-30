@@ -272,6 +272,13 @@ radial-gradient(circle at 92% 92%,rgba(255,126,0,.38),transparent 13%)!important
 .lb-rank{font-size:1.55vw!important}.lb-player{font-size:1.38vw!important}.lb-score{font-size:1.4vw!important}.lb-crown{color:#fff0a2!important;text-shadow:0 0 .6vw #ff9d00!important}
 .lb-footer{bottom:1.1vh!important;color:#ffbf35!important;letter-spacing:1vw!important}
 </style>
+<style id="epcRankFontScaleV1">
+.lb-stage .lb-head{font-size:calc(1.15vw * var(--rank-font-scale,1))!important}
+.lb-stage .lb-rank{font-size:calc(1.55vw * var(--rank-font-scale,1))!important}
+.lb-stage .lb-player{font-size:calc(1.38vw * var(--rank-font-scale,1))!important}
+.lb-stage .lb-score{font-size:calc(1.4vw * var(--rank-font-scale,1))!important}
+.lb-stage .lb-score small{font-size:calc(.75em * var(--rank-font-scale,1))!important}
+</style>
 </head>
 <body>
 <div id="pairScreen" class="wrap">
@@ -351,6 +358,8 @@ function renderPayload(p){
  if(rows.length||Array.isArray(p.rows)){
   const limit=Math.max(3,+ui.limit||10),rws=rows.slice(0,limit),medals=['🥇','🥈','🥉'];
   if(type==='rank'){
+   const rankFontScale=Math.min(160,Math.max(80,+ui.rankFontScale||100))/100;
+   root.style.setProperty('--rank-font-scale',rankFontScale);
    const rows=rws.slice(0,10),fmtDate=s=>{const x=String(s||'');if(!x)return '';const m=x.match(/^(\d{4})-(\d{2})-(\d{2})$/);return m?(+m[2])+'/'+(+m[3]):x},period=escapeHtml((p.activityFrom||p.activityTo)?((fmtDate(p.activityFrom)||'—')+' - '+(fmtDate(p.activityTo)||'—')):(p.period||p.dateRange||p.range||'活動進行中'));
    const who=r=>{const a=[];if(ui.showName!==false)a.push(r.name||'');if(ui.showMemberId)a.push('#'+(r.memberId||r.id||''));return a.filter(Boolean).join('　')||'—'};
    const rr=(r,i)=>{const n=i+1,cls=n===1?'gold':n===2?'silver':n===3?'bronze':'';return '<div class="lb-row '+cls+'"><div class="lb-rank">'+(ui.showRank===false?'':(n<=3?'<span class="lb-crown">♛</span>':'')+n)+'</div><div class="lb-player">'+escapeHtml(r?who(r):'—')+'</div><div class="lb-score">'+(ui.showScore===false?'':(r?Number(r.score??0):0)+' <small>分</small>')+'</div></div>'};
