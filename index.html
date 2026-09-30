@@ -195,15 +195,23 @@ function renderPayload(p){
  root.innerHTML="<pre>"+escapeHtml(JSON.stringify(p,null,2))+"</pre>";
 }
 function escapeHtml(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+let heartbeatTimer=null;
 function paired(){
   $("pairScreen").style.display="none";
   $("displayScreen").classList.add("active");
+}
+function startHeartbeat(id){
+  if(heartbeatTimer) return;
+  const beat=async()=>{try{await post({action:"register",deviceId:id})}catch(e){}};
+  beat();
+  heartbeatTimer=setInterval(beat,10000);
 }
 async function poll(id){
   try{
     const s=await getState(id);
     if(s.ok && s.paired){
       paired();
+      startHeartbeat(id);
       renderPayload(s.payload);
     }else if(s.ok){
       if(s.code) showCode(s.code);
@@ -221,6 +229,7 @@ async function boot(){
     if(j.paired){
       status("此顯示器已配對，正在載入內容…","ok");
       paired();
+      startHeartbeat(id);
     }else{
       status("配對碼已產生，請到管理後台輸入上方 6 位數","ok");
     }
