@@ -96,19 +96,23 @@ async function getState(id){
   return j;
 }
 function renderPayload(p){
-  const root=$("payload");
-  if(!p){root.innerHTML='<div class="empty"><h2>顯示器已連線</h2><p>等待管理後台發佈顯示內容</p></div>';return}
-  if(typeof p==="string"){root.innerHTML=`<div class="empty"><h2>${escapeHtml(p)}</h2></div>`;return}
-  if(p.html){root.innerHTML=p.html;return}
-  if(Array.isArray(p.rows)){
-    const ui=p.ui||{},rows=(p.rows||[]).slice(0,Math.max(3,+ui.limit||10)),medals=['🥇','🥈','🥉'];
-    const cls=['board',ui.layout||'classic',ui.fontSize==='large'?'font-large':'',ui.fontSize==='xlarge'?'font-xlarge':''].join(' ');
-    root.innerHTML=`${ui.showLogo===false?'':'<div class="epc-mark">EPC DISPLAY</div>'}<div class="${cls}"><div class="board-title">${escapeHtml(p.title||'EPC 排行榜')}</div><div class="rank-list">${rows.map((r,i)=>`<div class="rank-row ${i<3?'top3':''}"><div class="rank-no">${ui.showRank===false?'':(medals[i]||('#'+(i+1)))}</div><div class="rank-name">${escapeHtml(r.name||r.id||'')}</div><div class="rank-score">${ui.showScore===false?'':Number(r.score??r.total??r.games??0)+'<small>分</small>'}</div></div>`).join('')}</div></div>`;return;
-  }
-  if(p.title || p.subtitle){
-    root.innerHTML=`<div class="empty"><h2>${escapeHtml(p.title||"")}</h2><p>${escapeHtml(p.subtitle||"")}</p></div>`;return;
-  }
-  root.innerHTML="<pre>"+escapeHtml(JSON.stringify(p,null,2))+"</pre>";
+ const root=$("payload");
+ if(!p){root.innerHTML='<div class="empty"><h2>顯示器已連線</h2><p>等待管理後台發佈顯示內容</p></div>';return}
+ if(typeof p==="string"){root.innerHTML='<div class="empty"><h2>'+escapeHtml(p)+'</h2></div>';return}
+ if(p.html){root.innerHTML=p.html;return}
+ const rows=Array.isArray(p.rows)?p.rows:[],ui=p.ui||{},type=p.type||ui.kind||'';
+ if(type==='boss'){
+  const b=p.boss||{},max=Math.max(1,+b.initialHp||1),hp=Math.max(0,+b.hp||0),pct=Math.max(0,Math.min(100,hp/max*100)),latest=p.latest;
+  root.innerHTML='<div class="board"><div class="board-title">👑 '+escapeHtml(p.title||'雙十狩王')+'</div><div style="font-size:30px;color:var(--gold);margin:20px">目前獎池 <b style="font-size:54px">$'+Number(p.pool||0).toLocaleString()+'</b> / $'+Number(p.cap||0).toLocaleString()+'</div><div style="max-width:900px;margin:25px auto;padding:28px;border:1px solid var(--gold);border-radius:18px;background:rgba(20,15,8,.75)"><div style="font-size:34px;font-weight:900">'+escapeHtml(b.name||'等待魔王')+'</div><div style="height:30px;background:#311;border-radius:20px;overflow:hidden;margin:18px 0"><div style="height:100%;width:'+pct+'%;background:linear-gradient(90deg,#b81f24,#ffcb45)"></div></div><div style="font-size:28px">HP '+hp.toLocaleString()+' / '+max.toLocaleString()+'</div></div>'+(latest?'<div style="font-size:24px">最新攻擊：'+escapeHtml(latest.member||'')+'　傷害 '+Number(latest.damage||0).toLocaleString()+'</div>':'')+'</div>';return;
+ }
+ if(rows.length||Array.isArray(p.rows)){
+  const limit=Math.max(3,+ui.limit||10),rws=rows.slice(0,limit),medals=['🥇','🥈','🥉'];
+  let value=x=>type==='weekly'?((x.days||0)+' 天 / '+(x.games||0)+' 場'):type==='umbrella'?((x.score||0)+' 張'):((x.score??x.total??0)+' 分');
+  let label=type==='weekly'?'任務進度':type==='umbrella'?'保護傘':type==='hunter'?'獵人積分':type==='pioneer'?'先鋒積分':'總分';
+  root.innerHTML='<div class="board '+escapeHtml(ui.layout||'classic')+'"><div class="board-title">'+escapeHtml(p.title||'EPC 活動')+'</div><div style="display:grid;grid-template-columns:110px 1fr 220px;padding:8px 22px;color:var(--muted);text-align:left"><b>名次</b><b>玩家</b><b style="text-align:right">'+label+'</b></div><div class="rank-list">'+rws.map((r,i)=>'<div class="rank-row '+(i<3?'top3':'')+'"><div class="rank-no">'+(medals[i]||('#'+(i+1)))+'</div><div class="rank-name">'+escapeHtml(r.name||r.id||'')+'</div><div class="rank-score">'+escapeHtml(value(r))+'</div></div>').join('')+'</div></div>';return;
+ }
+ if(p.title||p.subtitle){root.innerHTML='<div class="empty"><h2>'+escapeHtml(p.title||'')+'</h2><p>'+escapeHtml(p.subtitle||'')+'</p></div>';return}
+ root.innerHTML="<pre>"+escapeHtml(JSON.stringify(p,null,2))+"</pre>";
 }
 function escapeHtml(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
 function paired(){
