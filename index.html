@@ -212,6 +212,10 @@ linear-gradient(115deg,rgba(35,13,2,.96),rgba(4,3,2,.98) 36%,rgba(4,3,2,.98) 64%
 .lb-rank{font-size:1.7vw;font-weight:900;text-align:center;position:relative}.lb-crown{font-size:1.8vw;margin-right:.35vw;color:#f1c05c}.silver .lb-crown{color:#e5e7e9}.bronze .lb-crown{color:#d78b5b}.lb-player{text-align:center;font-size:1.45vw;font-weight:900}.lb-score{text-align:center;font-size:1.5vw;font-weight:900}.lb-score small{font-size:.65em}
 .lb-footer{position:absolute;left:0;right:0;bottom:2.1vh;text-align:center;font-size:.62vw;letter-spacing:.55em;color:#aa916d}
 </style>
+<style id="epcLeaderboardRealLogoV10">
+.lb-brand{left:4.2vw!important;top:2.6vh!important;width:18vw!important;height:12vh!important;display:flex!important;align-items:center!important}
+.lb-real-logo{display:block!important;max-width:17vw!important;max-height:10.5vh!important;width:auto!important;height:auto!important;object-fit:contain!important;filter:drop-shadow(0 0 .55vw rgba(226,158,43,.55))!important}
+</style>
 </head>
 <body>
 <div id="pairScreen" class="wrap">
@@ -294,7 +298,7 @@ function renderPayload(p){
    const rows=rws.slice(0,10),period=escapeHtml(p.period||p.dateRange||p.range||'活動進行中');
    const who=r=>{const a=[];if(ui.showName!==false)a.push(r.name||'');if(ui.showMemberId)a.push('#'+(r.memberId||r.id||''));return a.filter(Boolean).join('　')||'—'};
    const rr=(r,i)=>{const n=i+1,cls=n===1?'gold':n===2?'silver':n===3?'bronze':'';return '<div class="lb-row '+cls+'"><div class="lb-rank">'+(ui.showRank===false?'':(n<=3?'<span class="lb-crown">♛</span>':'')+n)+'</div><div class="lb-player">'+escapeHtml(r?who(r):'—')+'</div><div class="lb-score">'+(ui.showScore===false?'':(r?Number(r.score??0):0)+' <small>分</small>')+'</div></div>'};
-   root.innerHTML='<div class="lb-stage"><div class="lb-brand"><div class="lb-mark">∞</div><div><b>EPC POKER</b><span>EIGHT POKER CLUB</span></div></div><div class="lb-title"><div>♛</div><h1>週排行榜</h1><span>WEEKLY LEADERBOARD</span></div><div class="lb-period"><b>活動區間</b><span>'+period+'</span></div><div class="lb-card left">A<br>♠</div><div class="lb-card right">A<br>♠</div><div class="lb-table"><div class="lb-head"><span>名次</span><span>玩家</span><span>總分</span></div>'+Array.from({length:10},(_,i)=>rr(rows[i],i)).join('')+'</div><div class="lb-footer">E P C　 P O K E R　 C L U B</div></div>';return;
+   root.innerHTML='<div class="lb-stage"><div class="lb-brand"><img class="lb-real-logo epcBrandLogoV3" alt="EPC EIGHT POKER CLUB"></div><div class="lb-title"><div>♛</div><h1>週排行榜</h1><span>WEEKLY LEADERBOARD</span></div><div class="lb-period"><b>活動區間</b><span>'+period+'</span></div><div class="lb-card left">A<br>♠</div><div class="lb-card right">A<br>♠</div><div class="lb-table"><div class="lb-head"><span>名次</span><span>玩家</span><span>總分</span></div>'+Array.from({length:10},(_,i)=>rr(rows[i],i)).join('')+'</div><div class="lb-footer">E P C　 P O K E R　 C L U B</div></div>';try{const logo=root.querySelector('.lb-real-logo');const src=document.querySelector('.epcBrandLogoV3[src]')?.src||window.EPC_LOGO_DATA||'';if(logo&&src)logo.src=src}catch(e){}return;
   }
   let value=x=>type==='weekly'?((x.days||0)+' 天 / '+(x.games||0)+' 場'):type==='umbrella'?((x.score||0)+' 張'):((x.score??x.total??0)+' 分');
   const meta={weekly:['WEEKLY MISSION','每週任務卡','累積出席・完成任務'],pioneer:['OPENING PIONEER','開桌先鋒榜','搶先報名・累積先鋒積分'],hunter:['HUNTER RANKING','獵人榜','淘汰對手・成為獵人'],umbrella:['UMBRELLA REWARDS','保護傘','累積獎勵・即時掌握進度']}[type]||['EPC ACTIVITY',p.title||'EPC 活動',''];
