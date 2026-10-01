@@ -383,7 +383,8 @@ function renderPayload(p){
   let value=x=>type==='weekly'?((x.days||0)+' 天 / '+(x.games||0)+' 場'):type==='umbrella'?((x.score||0)+' 張'):((x.score??x.total??0)+' 分');
   const meta={weekly:['WEEKLY MISSION','每週任務卡','累積出席・完成任務'],pioneer:['OPENING PIONEER','開桌先鋒榜','搶先報名・累積先鋒積分'],hunter:['HUNTER RANKING','獵人榜','淘汰對手・成為獵人'],umbrella:['UMBRELLA REWARDS','保護傘','累積獎勵・即時掌握進度']}[type]||['EPC ACTIVITY',p.title||'EPC 活動',''];
   const left=rws.slice(0,Math.ceil(rws.length/2)),right=rws.slice(Math.ceil(rws.length/2));
-  const mk=(arr,offset)=>arr.map((r,i)=>'<div class="as-row"><div class="as-no">#'+(offset+i+1)+'</div><div class="as-name">'+escapeHtml(r.name||r.id||'')+'</div><div class="as-value">'+escapeHtml(value(r))+'</div></div>').join('');
+  const who=r=>{const a=[];if(ui.showName!==false)a.push(r.name||'');if(ui.showMemberId)a.push('#'+(r.memberId||r.id||''));return a.filter(Boolean).join('　')||'—'};
+  const mk=(arr,offset)=>arr.map((r,i)=>'<div class="as-row"><div class="as-no">#'+(offset+i+1)+'</div><div class="as-name">'+escapeHtml(who(r))+'</div><div class="as-value">'+escapeHtml(value(r))+'</div></div>').join('');
   root.innerHTML='<div class="activity-screen '+escapeHtml(type)+'"><div class="as-head"><div class="as-brand"><b>♠ EPC</b><small>EIGHT POKER CLUB</small></div><div class="as-title"><div class="en">'+meta[0]+'</div><h1>'+meta[1]+'</h1><p>'+meta[2]+'</p></div><div></div></div><div class="as-main"><div class="as-grid"><div class="rp-rest-col">'+mk(left,0)+'</div><div class="rp-rest-col">'+mk(right,left.length)+'</div></div></div><div class="as-foot">EPC ・ MORE THAN POKER</div></div>';return;
  }
  if(p.title||p.subtitle){root.innerHTML='<div class="empty"><h2>'+escapeHtml(p.title||'')+'</h2><p>'+escapeHtml(p.subtitle||'')+'</p></div>';return}
