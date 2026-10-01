@@ -352,7 +352,9 @@ async function getState(id){
   try{j=JSON.parse(text)}catch(e){throw new Error("STATE 回傳不是 JSON："+text.slice(0,250))}
   return j;
 }
-function renderPayload(p){
+function renderPayload(p,_fromRotation){
+ if(!_fromRotation){clearTimeout(epcRotateTimer);epcRotateToken++}
+ if(p&&p.type==='rotate'){renderRotation_(p);return}
  const root=$("payload");
  if(!p){root.innerHTML='<div class="empty"><h2>顯示器已連線</h2><p>等待管理後台發佈顯示內容</p></div>';return}
  if(typeof p==="string"){root.innerHTML='<div class="empty"><h2>'+escapeHtml(p)+'</h2></div>';return}
@@ -389,6 +391,13 @@ function renderPayload(p){
  }
  if(p.title||p.subtitle){root.innerHTML='<div class="empty"><h2>'+escapeHtml(p.title||'')+'</h2><p>'+escapeHtml(p.subtitle||'')+'</p></div>';return}
  root.innerHTML="<pre>"+escapeHtml(JSON.stringify(p,null,2))+"</pre>";
+}
+let epcRotateTimer=null,epcRotateToken=0;
+function renderRotation_(p){
+ clearTimeout(epcRotateTimer);const slides=Array.isArray(p.slides)?p.slides.filter(Boolean):[];
+ if(!slides.length){$("displayScreen").innerHTML='<div class="empty"><h2>EPC 活動輪播</h2><p>目前沒有選擇要播放的活動</p></div>';return}
+ const token=++epcRotateToken;let i=0;
+ const next=()=>{if(token!==epcRotateToken)return;const s=slides[i%slides.length];renderPayload(s,true);i++;epcRotateTimer=setTimeout(next,Math.max(5,+s.duration||15)*1000)};next();
 }
 function escapeHtml(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
 function paired(){
