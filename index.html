@@ -353,8 +353,8 @@ async function getState(id){
   return j;
 }
 function renderPayload(p,_fromRotation){
- if(!_fromRotation){clearTimeout(epcRotateTimer);epcRotateToken++}
  if(p&&p.type==='rotate'){renderRotation_(p);return}
+ if(!_fromRotation){clearTimeout(epcRotateTimer);epcRotateTimer=null;epcRotateSig='';epcRotateToken++}
  const root=$("payload");
  if(!p){root.innerHTML='<div class="empty"><h2>顯示器已連線</h2><p>等待管理後台發佈顯示內容</p></div>';return}
  if(typeof p==="string"){root.innerHTML='<div class="empty"><h2>'+escapeHtml(p)+'</h2></div>';return}
@@ -392,12 +392,14 @@ function renderPayload(p,_fromRotation){
  if(p.title||p.subtitle){root.innerHTML='<div class="empty"><h2>'+escapeHtml(p.title||'')+'</h2><p>'+escapeHtml(p.subtitle||'')+'</p></div>';return}
  root.innerHTML="<pre>"+escapeHtml(JSON.stringify(p,null,2))+"</pre>";
 }
-let epcRotateTimer=null,epcRotateToken=0;
+let epcRotateTimer=null,epcRotateToken=0,epcRotateSig='',epcRotateIndex=0;
 function renderRotation_(p){
- clearTimeout(epcRotateTimer);const slides=Array.isArray(p.slides)?p.slides.filter(Boolean):[];
- if(!slides.length){$("displayScreen").innerHTML='<div class="empty"><h2>EPC 活動輪播</h2><p>目前沒有選擇要播放的活動</p></div>';return}
- const token=++epcRotateToken;let i=0;
- const next=()=>{if(token!==epcRotateToken)return;const s=slides[i%slides.length];renderPayload(s,true);i++;epcRotateTimer=setTimeout(next,Math.max(5,+s.duration||15)*1000)};next();
+ const slides=Array.isArray(p.slides)?p.slides.filter(Boolean):[];
+ if(!slides.length){clearTimeout(epcRotateTimer);epcRotateSig='';$("displayScreen").innerHTML='<div class="empty"><h2>EPC 活動輪播</h2><p>目前沒有選擇要播放的活動</p></div>';return}
+ const sig=slides.map(s=>(s.type||'')+':'+Math.max(5,+s.duration||15)).join('|');
+ if(epcRotateSig===sig&&epcRotateTimer)return;
+ clearTimeout(epcRotateTimer);epcRotateSig=sig;epcRotateIndex=0;const token=++epcRotateToken;
+ const next=()=>{if(token!==epcRotateToken)return;const s=slides[epcRotateIndex%slides.length];renderPayload(s,true);epcRotateIndex=(epcRotateIndex+1)%slides.length;epcRotateTimer=setTimeout(next,Math.max(5,+s.duration||15)*1000)};next();
 }
 function escapeHtml(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
 function paired(){
